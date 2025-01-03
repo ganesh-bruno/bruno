@@ -40,6 +40,28 @@
   "scripts": {
     "test": "node --experimental-vm-modules $(npx which jest)"
   },
+  "keywords": [
+    "API",
+    "testing",
+    "automation",
+    "cli",
+    "command-line",
+    "bruno",
+    "HTTP requests",
+    "rest-api",
+    "api-client",
+    "api-automation",
+    "request-handling",
+    "mock-api",
+    "http-client",
+    "async",
+    "promise",
+    "javascript",
+    "nodejs",
+    "automation-tool",
+    "postman-alternative",
+    "api-scripting"
+  ],
   "files": [
     "src",
     "bin",
