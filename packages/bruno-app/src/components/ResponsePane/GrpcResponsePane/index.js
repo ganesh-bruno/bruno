@@ -114,7 +114,10 @@ const GrpcResponsePane = ({ item, collection }) => {
         {!isLoading ? (
           <div className="flex flex-grow justify-end items-center">
             {focusedTab?.responsePaneTab === 'timeline' ? (
-              <ClearTimeline item={item} collection={collection} />
+              <>
+                <ResponseLayoutToggle />
+                <ClearTimeline item={item} collection={collection} />
+              </>
             ) : item?.response ? (
               <>
                 <ResponseLayoutToggle />
