@@ -747,6 +747,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
                         isOn={isReflectionMode}
                         handleToggle={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           setIsReflectionMode(!isReflectionMode);
                           if (!isReflectionMode) {
                             // Switching to reflection mode

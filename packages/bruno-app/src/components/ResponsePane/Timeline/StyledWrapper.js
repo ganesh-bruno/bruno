@@ -2,9 +2,12 @@ import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
   position: relative;
+  overflow-y: auto;
+  height: 100%;
+  flex: 1;
 
   .timeline-container {
-    /* Generic scrollbar enabled */
+    flex: 1;
   }
 
   .timeline-event {

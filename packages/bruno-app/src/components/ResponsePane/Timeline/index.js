@@ -63,13 +63,11 @@ const Timeline = ({ collection, item }) => {
 
   return (
     <StyledWrapper
-      className="pb-4 w-full flex flex-grow flex-col relative"
-      // style={{ maxWidth: width - 60, overflowWrap: 'break-word' }}
+      className="pb-4 w-full flex flex-grow flex-col"
     >
       {/* Timeline container with scrollbar */}
       <div 
-        className="timeline-container flex-1 overflow-y-auto"
-        style={{ maxHeight: 'calc(100vh - 250px)' }}
+        className="timeline-container"
       >
         {combinedTimeline.map((event, index) => {
           // Handle regular requests
