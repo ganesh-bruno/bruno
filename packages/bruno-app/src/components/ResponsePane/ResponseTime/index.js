@@ -1,6 +1,6 @@
 import React from 'react';
 import StyledWrapper from './StyledWrapper';
-import { isNumber } from 'lodash';
+import isNumber from 'lodash/isNumber';
 
 const ResponseTime = ({ duration }) => {
   let durationToDisplay = '';
@@ -13,6 +13,10 @@ const ResponseTime = ({ duration }) => {
     durationToDisplay = duration + 'ms';
   }
 
-  return isNumber(duration) ? <StyledWrapper className="ml-4">{durationToDisplay}</StyledWrapper> : null;
+  if (!isNumber(duration)) {
+    return null;
+  }
+
+  return <StyledWrapper className="ml-4">{durationToDisplay}</StyledWrapper>;
 };
 export default ResponseTime;

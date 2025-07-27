@@ -3,7 +3,7 @@ import get from 'lodash/get';
 import { useDispatch } from 'react-redux';
 import { requestUrlChanged, updateRequestMethod } from 'providers/ReduxStore/slices/collections';
 import { saveRequest } from 'providers/ReduxStore/slices/collections/actions';
-import HttpMethodSelector from './HttpMethodSelector/index';
+import HttpMethodSelector from './HttpMethodSelector';
 import { useTheme } from 'providers/Theme';
 import { IconDeviceFloppy, IconArrowRight, IconCode } from '@tabler/icons';
 import SingleLineEditor from 'components/SingleLineEditor';

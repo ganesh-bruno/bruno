@@ -13,6 +13,33 @@ const GrpcAuthMode = ({ item, collection }) => {
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
   const authMode = item.draft ? get(item, 'draft.request.auth.mode') : get(item, 'request.auth.mode');
 
+  const authModes = [
+    {
+      name: 'Basic Auth',
+      mode: 'basic'
+    },
+    {
+      name: 'Bearer Token',
+      mode: 'bearer'
+    },
+    {
+      name: 'API Key',
+      mode: 'apikey'
+    },
+    {
+      name: 'OAuth2',
+      mode: 'oauth2'
+    },
+    {
+      name: 'Inherit',
+      mode: 'inherit'
+    },
+    {
+      name: 'No Auth',
+      mode: 'none'
+    }
+  ];
+
   const Icon = forwardRef((props, ref) => {
     return (
       <div ref={ref} className="flex items-center justify-center auth-mode-label select-none">
@@ -30,65 +57,25 @@ const GrpcAuthMode = ({ item, collection }) => {
       })
     );
   };
+
+  const onClickHandler = (mode) => {
+    dropdownTippyRef?.current?.hide();
+    onModeChange(mode);
+  };
   
   return (
     <StyledWrapper>
       <div className="inline-flex items-center cursor-pointer auth-mode-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('basic');
-            }}
-          >
-            Basic Auth
-          </div>
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('bearer');
-            }}
-          >
-            Bearer Token
-          </div>
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('apikey');
-            }}
-          >
-            API Key
-          </div>
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('oauth2');
-            }}
-          >
-            OAuth2
-          </div>
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('inherit');
-            }}
-          >
-            Inherit
-          </div>
-          <div
-            className="dropdown-item"
-            onClick={() => {
-              dropdownTippyRef?.current?.hide();
-              onModeChange('none');
-            }}
-          >
-            No Auth
-          </div>
+          {authModes.map((authMode) => (
+            <div
+              key={authMode.mode}
+              className="dropdown-item"
+              onClick={() => onClickHandler(authMode.mode)}
+            >
+              {authMode.name}
+            </div>
+          ))}
         </Dropdown>
       </div>
     </StyledWrapper>

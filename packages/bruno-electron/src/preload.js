@@ -1,6 +1,5 @@
 const { ipcRenderer, contextBridge, webUtils } = require('electron');
-const fs = require('fs');
-const path = require('path');
+const path = require('node:path');
 const { normalizeAndResolvePath, isFile } = require('./utils/filesystem');
 
 contextBridge.exposeInMainWorld('ipcRenderer', {

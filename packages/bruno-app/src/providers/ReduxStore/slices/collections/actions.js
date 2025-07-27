@@ -1489,9 +1489,9 @@ export const mountCollection = ({ collectionUid, collectionPathname, brunoConfig
     });
   };
 
-  export const updateActiveConnectionsInStore = (activeConnectionIds) => (dispatch, getState) => {
-    dispatch(updateActiveConnections(activeConnectionIds));
-  };
+export const updateActiveConnectionsInStore = (activeConnectionIds) => (dispatch, getState) => {
+  dispatch(updateActiveConnections(activeConnectionIds));
+};
 
 export const openCollectionSettings = (collectionUid, tabName = 'overview') => (dispatch, getState) => {
   const state = getState();

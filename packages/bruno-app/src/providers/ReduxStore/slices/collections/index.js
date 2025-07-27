@@ -50,7 +50,7 @@ const initialState = {
   activeConnections: []
 };
 
-const initiatedResponse = {
+const initiatedGrpcResponse = {
   statusCode: null,
   statusText: 'STREAMING',
   statusDescription: null,
@@ -371,7 +371,7 @@ export const collectionsSlice = createSlice({
         item.requestSent = eventData;
         item.requestSent.timestamp = Date.now();
         item.response = {
-          initiatedResponse,
+          initiatedGrpcResponse,
           statusText: isUnary ? 'PENDING' : 'STREAMING'
         };
       }
@@ -406,7 +406,7 @@ export const collectionsSlice = createSlice({
       if (!item) return;
       
       // Get current response state or create initial state
-      const currentResponse = item.response || initiatedResponse
+      const currentResponse = item.response || initiatedGrpcResponse
       const timestamp = item?.requestSent?.timestamp;
       let updatedResponse = { ...currentResponse, duration: Date.now() - (timestamp || Date.now()) };
 
@@ -427,7 +427,6 @@ export const collectionsSlice = createSlice({
             updatedResponse.isError = true;
           }
 
-          
           // Add response to list
           updatedResponse.responses = res 
             ? [...(currentResponse?.responses || []), res] 
@@ -1460,11 +1459,11 @@ export const collectionsSlice = createSlice({
         const item = findItemInCollection(collection, action.payload.itemUid);
 
         if (item && isItemARequest(item)) {
-            if (!item.draft) {
-              item.draft = cloneDeep(item);
-            }
-            item.draft.request.method = action.payload.method;
-            item.draft.request.methodType = action.payload.methodType;
+          if (!item.draft) {
+            item.draft = cloneDeep(item);
+          }
+          item.draft.request.method = action.payload.method;
+          item.draft.request.methodType = action.payload.methodType;
         }
       }
     },
@@ -1475,10 +1474,10 @@ export const collectionsSlice = createSlice({
         const item = findItemInCollection(collection, action.payload.itemUid);    
 
         if (item && isItemARequest(item)) {
-            if (!item.draft) {
-              item.draft = cloneDeep(item);
-            }
-            item.draft.request.protoPath = action.payload.protoPath;
+          if (!item.draft) {
+            item.draft = cloneDeep(item);
+          }
+          item.draft.request.protoPath = action.payload.protoPath;
         }
       }
     },

@@ -315,8 +315,7 @@ const requestSchema = Yup.object({
   .noUnknown(true)
   .strict();
 
-
-  const grpcRequestSchema = Yup.object({
+const grpcRequestSchema = Yup.object({
   url: requestUrlSchema,
   method: Yup.string().optional(),
   methodType: Yup.string().oneOf(['unary', 'client-streaming', 'server-streaming', 'bidi-streaming', '']).nullable(),

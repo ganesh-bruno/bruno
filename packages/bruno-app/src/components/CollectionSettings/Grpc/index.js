@@ -5,29 +5,9 @@ import StyledWrapper from './StyledWrapper';
 import toast from 'react-hot-toast';
 import { updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
 import cloneDeep from 'lodash/cloneDeep';
-import { IconTrash, IconFile, IconFileImport, IconAlertCircle, IconHelp } from '@tabler/icons';
-import path from 'utils/common/path';
+import { IconTrash, IconFile, IconFileImport, IconAlertCircle } from '@tabler/icons';
+import { getRelativePath, getBasename, getDirPath } from 'utils/common/path';
 import { Tooltip } from 'react-tooltip';
-
-const getBasename = (filePath) => {
-  const parts = filePath.split(path.sep);
-  return parts[parts.length - 1];
-};
-
-const getDirPath = (filePath) => {
-  const parts = filePath.split(path.sep);
-  parts.pop();
-  return parts.join(path.sep);
-};
-
-const getRelativePath = (absolutePath, collectionPath) => {
-  try {
-    const relativePath = path.relative(collectionPath, absolutePath);
-    return relativePath || absolutePath;
-  } catch (error) {
-    return absolutePath;
-  }
-};
 
 const GrpcSettings = ({ collection }) => {
   const dispatch = useDispatch();
@@ -114,6 +94,30 @@ const GrpcSettings = ({ collection }) => {
     }
   };
 
+  // Handle file input change
+  const handleFileInputChange = (e) => {
+    const replaceIndex = e.target.dataset.replaceIndex;
+    if (replaceIndex !== undefined) {
+      // Handle replacement
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const filePath = window?.ipcRenderer?.getFilePath(files[0]);
+        if (filePath) {
+          const relativePath = getRelativePath(filePath, collection.pathname);
+          const updatedProtoFiles = [...formik.values.protoFiles];
+          updatedProtoFiles[replaceIndex] = {
+            path: relativePath,
+            type: 'file'
+          };
+          formik.setFieldValue('protoFiles', updatedProtoFiles);
+        }
+      }
+      delete e.target.dataset.replaceIndex;
+    } else {
+      getProtoFile(e.target);
+    }
+  };
+
   return (
     <StyledWrapper className="h-full w-full">
       <form className="bruno-form" onSubmit={formik.handleSubmit}>
@@ -137,28 +141,7 @@ const GrpcSettings = ({ collection }) => {
               style={{ display: 'none' }}
               accept=".proto"
               multiple
-              onChange={(e) => {
-                const replaceIndex = e.target.dataset.replaceIndex;
-                if (replaceIndex !== undefined) {
-                  // Handle replacement
-                  const files = e.target.files;
-                  if (files && files.length > 0) {
-                    const filePath = window?.ipcRenderer?.getFilePath(files[0]);
-                    if (filePath) {
-                      const relativePath = getRelativePath(filePath, collection.pathname);
-                      const updatedProtoFiles = [...formik.values.protoFiles];
-                      updatedProtoFiles[replaceIndex] = {
-                        path: relativePath,
-                        type: 'file'
-                      };
-                      formik.setFieldValue('protoFiles', updatedProtoFiles);
-                    }
-                  }
-                  delete e.target.dataset.replaceIndex;
-                } else {
-                  getProtoFile(e.target);
-                }
-              }}
+              onChange={handleFileInputChange}
             />
             
             <div className="flex flex-col gap-3">

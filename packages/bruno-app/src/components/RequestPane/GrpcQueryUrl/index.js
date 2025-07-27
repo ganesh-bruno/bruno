@@ -6,7 +6,7 @@ import { saveRequest, browseFiles, loadGrpcMethodsFromReflection, openCollection
 import { useTheme } from 'providers/Theme';
 import SingleLineEditor from 'components/SingleLineEditor/index';
 import { isMacOS } from 'utils/common/platform';
-import { getRelativePath } from 'utils/common/path';
+import { getRelativePath, getBasename } from 'utils/common/path';
 import useLocalStorage from 'hooks/useLocalStorage/index';
 import StyledWrapper from './StyledWrapper';
 import ToggleSwitch from 'components/ToggleSwitch/index';
@@ -35,15 +35,10 @@ import {
   IconGrpcClientStreaming,
   IconGrpcServerStreaming,
   IconGrpcBidiStreaming
-} from 'components/Icons/GrpcMethods';
+} from 'components/Icons/Grpc';
 import Modal from 'components/Modal/index';
 import CodeEditor from 'components/CodeEditor';
 import { debounce } from 'lodash';
-
-const getBasename = (filepath) => {
-  if (!filepath) return '';
-  return filepath.split(/[\\/]/).pop();
-};
 
 const GrpcurlModal = ({ isOpen, onClose, command }) => {
   const { displayedTheme } = useTheme();
@@ -101,7 +96,6 @@ const GrpcurlModal = ({ isOpen, onClose, command }) => {
 };
 
 const GrpcQueryUrl = ({ item, collection, handleRun }) => {
-
   const { theme, storedTheme } = useTheme();
   const dispatch = useDispatch();
   const method = item.draft ? get(item, 'draft.request.method') : get(item, 'request.method');
@@ -111,9 +105,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
   const isMac = isMacOS();
   const saveShortcut = isMac ? 'Cmd + S' : 'Ctrl + S';
   const editorRef = useRef(null);
-
   const isConnectionActive = useSelector((state) => state.collections.activeConnections.includes(item.uid));
-
   const [protoFilePath, setProtoFilePath] = useState(protoPath);
   const [grpcMethods, setGrpcMethods] = useState([]);
   const [isLoadingMethods, setIsLoadingMethods] = useState(false);
@@ -125,20 +117,12 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
   const methodDropdownRef = useRef();
   const protoDropdownRef = useRef();
   const haveFetchedMethodsRef = useRef(false);
-
   const [showGrpcurlModal, setShowGrpcurlModal] = useState(false);
   const [grpcurlCommand, setGrpcurlCommand] = useState('');
   const [isReflectionMode, setIsReflectionMode] = useState(false);
-
-  // Get collection proto files from presets
   const collectionProtoFiles = get(collection, 'brunoConfig.grpc.protoFiles', []);
-
-  // Cache for gRPC methods fetched via reflection
   const [reflectionCache, setReflectionCache] = useLocalStorage('bruno.grpc.reflectionCache', {});
-
-  // Cache for gRPC methods loaded from proto files
   const [protofileCache, setProtofileCache] = useLocalStorage('bruno.grpc.protofileCache', {});
-
   const fileExistsCache = useRef(new Map());
 
   const fileExists = useCallback((filePath) => {
@@ -177,9 +161,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
   const onMethodDropdownCreate = (ref) => (methodDropdownRef.current = ref);
   const onProtoDropdownCreate = (ref) => (protoDropdownRef.current = ref);
 
-  // Add a helper function to determine if the current method is a streaming method
   const isStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && selectedGrpcMethod.type !== 'unary';
-
   const isClientStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && (selectedGrpcMethod.type === 'client-streaming' || selectedGrpcMethod.type === 'bidi-streaming');
 
   const onSave = (finalValue) => {
@@ -191,7 +173,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
     const editor = editorRef.current.editor;
     const cursor = editor.getCursor();
 
-    const finalUrl = value?.trim() ?? value;
+    const finalUrl = value?.trim() || value;
 
     dispatch(
       requestUrlChanged({
@@ -227,7 +209,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
         });
     }
 
-
     dispatch(
       updateRequestMethod({
         method: path,
@@ -235,14 +216,12 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
         itemUid: item.uid,
         collectionUid: collection.uid
         })
-      );
-    
+      ); 
   };
 
   const handleReflection = async (url, isManualRefresh = false) => {
     if (!url) return;
 
-    // Check if we have cached methods for this URL
     const cachedMethods = reflectionCache[url];
     if (!isManualRefresh && cachedMethods && !isLoadingMethods) {
       setGrpcMethods(cachedMethods);
@@ -323,7 +302,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
             });
           }
         }
-
         toast.success(`Loaded ${methods.length} gRPC methods from reflection`);
       }
     } catch (error) {
@@ -360,8 +338,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
     }
   };
 
-
-
   // Add a new function to group methods by service
   const groupMethodsByService = (methods) => {
     if (!methods || !methods.length) return {};
@@ -394,7 +370,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
     
     return groupedMethods;
   };
-
 
   const MethodsDropdownIcon = forwardRef((props, ref) => {
     return (
@@ -452,7 +427,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
         return <IconGrpcUnary size={20} strokeWidth={2} />;
     }
   };
-
 
   const handleCancelConnection = (e) => {
     e.stopPropagation();
@@ -663,7 +637,6 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
     handleReflection(url);
 
   }, []);
-
 
   return (
     <StyledWrapper className="flex items-center relative">
@@ -942,7 +915,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
               size={22}
               className={`${isLoadingMethods ? 'animate-spin' : 'cursor-pointer'}`}
             />
-            <span className="infotiptext text-xs">
+            <span className="infotip-text text-xs">
               {isReflectionMode ? 'Refresh server reflection' : 'Refresh proto file methods'}
             </span>
           </div>
@@ -959,7 +932,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
               strokeWidth={1.5}
               size={22}
             />
-            <span className="infotiptext text-xs">Generate grpcurl command</span>
+            <span className="infotip-text text-xs">Generate grpcurl command</span>
           </div>
 
           <div
@@ -975,8 +948,8 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
               strokeWidth={1.5}
               size={22}
               className={`${item.draft ? 'cursor-pointer' : 'cursor-default'}`}
-            />
-            <span className="infotiptext text-xs">
+            />  
+            <span className="infotip-text text-xs">
               Save <span className="shortcut">({saveShortcut})</span>
             </span>
           </div>
@@ -985,7 +958,7 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
             <div className="connection-controls relative flex items-center h-full gap-3">
               <div className="infotip" onClick={handleCancelConnection}>
                 <IconX color={theme.requestTabs.icon.color} strokeWidth={1.5} size={22} className="cursor-pointer" />
-                <span className="infotiptext text-xs">Cancel</span>
+                <span className="infotip-text text-xs">Cancel</span>
               </div>
 
             {isClientStreamingMethod && <div onClick={handleEndConnection}>

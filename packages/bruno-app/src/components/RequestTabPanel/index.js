@@ -231,12 +231,12 @@ const RequestTabPanel = () => {
     const isGrpcRequest = item?.type === 'grpc-request';
     const request = item.draft ? item.draft.request : item.request;
 
-    if(isGrpcRequest && !request.url) {
+    if (isGrpcRequest && !request.url) {
       toast.error('Please enter a valid gRPC server URL');
       return;
     }
 
-    if(isGrpcRequest && !request.method) {
+    if (isGrpcRequest && !request.method) {
       toast.error('Please select a gRPC method');
       return;
     }
@@ -283,7 +283,7 @@ const RequestTabPanel = () => {
               <HttpRequestPane item={item} collection={collection} />
             ) : null}
 
-            {item.type === 'grpc-request' ? (
+            {isGrpcRequest ? (
               <GrpcRequestPane item={item} collection={collection} handleRun={handleRun} />
             ) : null}
           </div>

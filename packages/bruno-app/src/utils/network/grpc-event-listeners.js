@@ -25,12 +25,9 @@ const useGrpcEventListeners = () => {
         requestUid: requestId,
         eventData
       }));
-
-
     });
 
     const removeGrpcMessageSentListener = ipcRenderer.on('grpc:message', (requestId, collectionUid, eventData) => {
-
 
       dispatch(runGrpcRequestEvent({
         eventType: "message",
@@ -108,7 +105,7 @@ const useGrpcEventListeners = () => {
     });
 
     const removeGrpcConnectionsChangedListener = ipcRenderer.on(`grpc:connections-changed`, (data) => {
-
+      
       dispatch(updateActiveConnectionsInStore(data));
     });
 

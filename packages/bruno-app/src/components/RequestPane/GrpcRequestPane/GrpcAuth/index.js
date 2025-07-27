@@ -8,19 +8,9 @@ import ApiKeyAuth from '../../Auth/ApiKeyAuth';
 import OAuth2 from '../../Auth/OAuth2/index';
 import StyledWrapper from './StyledWrapper';
 import { humanizeRequestAuthMode } from 'utils/collections';
-import { findItemInCollection, findParentItemInCollection } from 'utils/collections/index';
+import { getTreePathFromCollectionToItem } from 'utils/collections/index';
 import { updateRequestAuthMode, updateAuth } from 'providers/ReduxStore/slices/collections';
 import { saveRequest } from 'providers/ReduxStore/slices/collections/actions';
-
-const getTreePathFromCollectionToItem = (collection, _item) => {
-  let path = [];
-  let item = findItemInCollection(collection, _item?.uid);
-  while (item) {
-    path.unshift(item);
-    item = findParentItemInCollection(collection, item?.uid);
-  }
-  return path;
-};
 
 // List of auth modes supported by gRPC
 const supportedGrpcAuthModes = ['basic', 'bearer', 'apikey', 'oauth2', 'none', 'inherit'];

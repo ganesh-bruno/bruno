@@ -18,5 +18,19 @@ const getRelativePath = (absolutePath, collectionPath) => {
   }
 };
 
+const getBasename = (filePath) => {
+  if (!filePath) {
+    return '';
+  }
+  const parts = filePath.split(path.sep);
+  return parts[parts.length - 1];
+};
+
+const getDirPath = (filePath) => {
+  const parts = filePath.split(path.sep);
+  parts.pop();
+  return parts.join(path.sep);
+};
+
 export default brunoPath;
-export { getRelativePath };
+export { getRelativePath, getBasename, getDirPath };

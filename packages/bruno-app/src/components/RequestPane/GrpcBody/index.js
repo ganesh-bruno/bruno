@@ -10,8 +10,9 @@ import CodeEditor from 'components/CodeEditor/index';
 import StyledWrapper from './StyledWrapper';
 import { IconSend, IconRefresh, IconWand, IconPlus, IconTrash, IconChevronDown, IconChevronUp } from '@tabler/icons';
 import ToolHint from 'components/ToolHint/index';
-import { toastError, toastSuccess } from 'utils/common/error';
+import { toastError } from 'utils/common/error';
 import { format, applyEdits } from 'jsonc-parser';
+import toast from 'react-hot-toast'
 
 const SingleGrpcMessage = ({ message, item, collection, index, methodType, isCollapsed, onToggleCollapse, handleRun, canClientSendMultipleMessages }) => {
     const dispatch = useDispatch();
@@ -25,20 +26,20 @@ const SingleGrpcMessage = ({ message, item, collection, index, methodType, isCol
     const { name, content } = message;
 
     const onEdit = (value) => {
-        const currentMessages = [...(body.grpc || [])];
-        
-        currentMessages[index] = {
-            name: name ? name : `message ${index + 1}`,
-            content: value
-        };
-            
-        dispatch(
-            updateRequestBody({
-                content: currentMessages,
-                itemUid: item.uid,
-                collectionUid: collection.uid
-            })
-        );
+      const currentMessages = [...(body.grpc || [])];
+      
+      currentMessages[index] = {
+          name: name ? name : `message ${index + 1}`,
+          content: value
+      };
+          
+      dispatch(
+          updateRequestBody({
+              content: currentMessages,
+              itemUid: item.uid,
+              collectionUid: collection.uid
+          })
+      );
     };
     
     const onSend = async () => {
@@ -51,60 +52,58 @@ const SingleGrpcMessage = ({ message, item, collection, index, methodType, isCol
     const onSave = () => dispatch(saveRequest(item.uid, collection.uid));
     
     const onRegenerateMessage = async () => {
-        try {
-            const loadingToastId = toastSuccess('Generating sample message...');
-            
-            const methodPath = item.draft?.request?.method || item.request?.method;
-            
-            if (!methodPath) {
-                toastError(new Error('Method path not found in request'));
-                return;
-            }
-            
-            const result = await generateGrpcSampleMessage(
-                methodPath,
-                content, 
-                { arraySize: 2 } 
-            );
-            
-            if (result.success) {
-                const currentMessages = [...(body.grpc || [])];
-                
-                currentMessages[index] = {
-                    name: name ? name : `message ${index + 1}`,
-                    content: result.message
-                };
-                
-                dispatch(
-                    updateRequestBody({
-                        content: currentMessages,
-                        itemUid: item.uid,
-                        collectionUid: collection.uid
-                    })
-                );
-                
-                toastSuccess('Sample message generated successfully!', { id: loadingToastId });
-            } else {
-                toastError(new Error(result.error || 'Failed to generate sample message'));
-            }
-        } catch (error) {
-            console.error('Error generating sample message:', error);
-            toastError(error);
-        }
+      try {
+          const methodPath = item.draft?.request?.method || item.request?.method;
+          
+          if (!methodPath) {
+              toastError(new Error('Method path not found in request'));
+              return;
+          }
+          
+          const result = await generateGrpcSampleMessage(
+              methodPath,
+              content, 
+              { arraySize: 2 } 
+          );
+          
+          if (result.success) {
+              const currentMessages = [...(body.grpc || [])];
+              
+              currentMessages[index] = {
+                  name: name ? name : `message ${index + 1}`,
+                  content: result.message
+              };
+              
+              dispatch(
+                  updateRequestBody({
+                      content: currentMessages,
+                      itemUid: item.uid,
+                      collectionUid: collection.uid
+                  })
+              );
+              
+              toast.success('Sample message generated successfully!');
+          } else {
+              toastError(new Error(result.error || 'Failed to generate sample message'));
+          }
+      } catch (error) {
+          console.error('Error generating sample message:', error);
+          toastError(error);
+      }
     };
 
     const onDeleteMessage = () => { 
-        const currentMessages = [...(body.grpc || [])];
-        
-        currentMessages.splice(index, 1);
-        
-        dispatch(
-            updateRequestBody({
-                content: currentMessages,
-                itemUid: item.uid,
-                collectionUid: collection.uid
-            })
-        );
+      const currentMessages = [...(body.grpc || [])];
+      
+      currentMessages.splice(index, 1);
+      
+      dispatch(
+          updateRequestBody({
+              content: currentMessages,
+              itemUid: item.uid,
+              collectionUid: collection.uid
+          })
+      );
     };
 
     const onPrettify = () => {
@@ -132,83 +131,83 @@ const SingleGrpcMessage = ({ message, item, collection, index, methodType, isCol
     const getContainerHeight = (canClientSendMultipleMessages && body.grpc.length > 1) ? `${isCollapsed ? "" : "h-80"}` : "h-full"
 
     return (
-    <div className={`flex flex-col mb-3 border border-neutral-200 dark:border-neutral-800 rounded-md overflow-hidden ${getContainerHeight} relative`}>
-      <div 
-        className="grpc-message-header flex items-center justify-between px-3 py-2 bg-neutral-100 dark:bg-neutral-700 cursor-pointer"
-        onClick={onToggleCollapse}
-      >
-        <div className="flex items-center gap-2">
-          {isCollapsed ? 
-            <IconChevronDown size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" /> : 
-            <IconChevronUp size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
-          }
-          <span className="font-medium text-sm">{`Message ${canClientStream ? index + 1 : ''}`}</span>
-        </div>
-        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <ToolHint text="Format JSON with proper indentation and spacing" toolhintId={`prettify-msg-${index}`}>
-            <button 
-              onClick={onPrettify}
-              className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
-            >
-              <IconWand size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
-            </button>
-          </ToolHint>
-          
-          <ToolHint text="Generate a new sample message based on schema" toolhintId={`regenerate-msg-${index}`}>
-            <button 
-              onClick={onRegenerateMessage}
-              className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
-            >
-              <IconRefresh size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
-            </button>
-          </ToolHint>
-          
-          {canClientStream && (
-            <ToolHint text={isConnectionActive ? "Send gRPC message" : "Connection not active"} toolhintId={`send-msg-${index}`}>
+      <div className={`flex flex-col mb-3 border border-neutral-200 dark:border-neutral-800 rounded-md overflow-hidden ${getContainerHeight} relative`}>
+        <div 
+          className="grpc-message-header flex items-center justify-between px-3 py-2 bg-neutral-100 dark:bg-neutral-700 cursor-pointer"
+          onClick={onToggleCollapse}
+        >
+          <div className="flex items-center gap-2">
+            {isCollapsed ? 
+              <IconChevronDown size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" /> : 
+              <IconChevronUp size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
+            }
+            <span className="font-medium text-sm">{`Message ${canClientStream ? index + 1 : ''}`}</span>
+          </div>
+          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+            <ToolHint text="Format JSON with proper indentation and spacing" toolhintId={`prettify-msg-${index}`}>
               <button 
-                onClick={onSend}
-                disabled={!isConnectionActive}
-                className={`p-1 rounded ${isConnectionActive ? 'hover:bg-zinc-200 dark:hover:bg-zinc-600' : 'opacity-50 cursor-not-allowed'} transition-colors`}
-              >
-                <IconSend 
-                  size={16} 
-                  strokeWidth={1.5} 
-                  className={`${isConnectionActive ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-500'}`} 
-                />
-              </button>
-            </ToolHint>
-          )}
-          
-          {index > 0 && (
-            <ToolHint text="Delete this message" toolhintId={`delete-msg-${index}`}>
-              <button 
-                onClick={onDeleteMessage}
+                onClick={onPrettify}
                 className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
               >
-                <IconTrash size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
+                <IconWand size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
               </button>
             </ToolHint>
-          )}
+            
+            <ToolHint text="Generate a new sample message based on schema" toolhintId={`regenerate-msg-${index}`}>
+              <button 
+                onClick={onRegenerateMessage}
+                className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+              >
+                <IconRefresh size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
+              </button>
+            </ToolHint>
+            
+            {canClientStream && (
+              <ToolHint text={isConnectionActive ? "Send gRPC message" : "Connection not active"} toolhintId={`send-msg-${index}`}>
+                <button 
+                  onClick={onSend}
+                  disabled={!isConnectionActive}
+                  className={`p-1 rounded ${isConnectionActive ? 'hover:bg-zinc-200 dark:hover:bg-zinc-600' : 'opacity-50 cursor-not-allowed'} transition-colors`}
+                >
+                  <IconSend 
+                    size={16} 
+                    strokeWidth={1.5} 
+                    className={`${isConnectionActive ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-500'}`} 
+                  />
+                </button>
+              </ToolHint>
+            )}
+            
+            {index > 0 && (
+              <ToolHint text="Delete this message" toolhintId={`delete-msg-${index}`}>
+                <button 
+                  onClick={onDeleteMessage}
+                  className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                >
+                  <IconTrash size={16} strokeWidth={1.5} className="text-zinc-700 dark:text-zinc-300" />
+                </button>
+              </ToolHint>
+            )}
+          </div>
         </div>
+        
+        {!isCollapsed && (
+          <div className={`flex ${body.grpc.length === 1 || !canClientSendMultipleMessages ? "h-full" : "h-80"} relative`}>
+            <CodeEditor
+              collection={collection} 
+              theme={displayedTheme}
+              font={get(preferences, 'font.codeFont', 'default')}
+              fontSize={get(preferences, 'font.codeFontSize')}
+              value={content}
+              onEdit={onEdit}
+              onRun={handleRun}
+              onSave={onSave}
+              mode='application/ld+json'
+              enableVariableHighlighting={true}
+            />
+          </div>
+        )}
       </div>
-      
-      {!isCollapsed && (
-        <div className={`flex ${body.grpc.length === 1 || !canClientSendMultipleMessages ? "h-full" : "h-80"} relative`}>
-          <CodeEditor
-            collection={collection} 
-            theme={displayedTheme}
-            font={get(preferences, 'font.codeFont', 'default')}
-            fontSize={get(preferences, 'font.codeFontSize')}
-            value={content}
-            onEdit={onEdit}
-            onRun={handleRun}
-            onSave={onSave}
-            mode='application/ld+json'
-            enableVariableHighlighting={true}
-          />
-        </div>
-      )}
-    </div>
     )
 }
 
@@ -290,18 +289,18 @@ const GrpcBody = ({ item, collection, handleRun }) => {
         {body.grpc
           .filter((_, index) => canClientSendMultipleMessages || index === 0)
           .map((message, index) => (
-          <SingleGrpcMessage 
-            key={index}
-            message={message} 
-            item={item} 
-            collection={collection}
-            index={index}
-            methodType={methodType}
-            isCollapsed={collapsedMessages.includes(index)}
-            onToggleCollapse={() => toggleMessageCollapse(index)}
-            handleRun={handleRun}
-            canClientSendMultipleMessages={canClientSendMultipleMessages}
-          />
+            <SingleGrpcMessage 
+              key={index}
+              message={message} 
+              item={item} 
+              collection={collection}
+              index={index}
+              methodType={methodType}
+              isCollapsed={collapsedMessages.includes(index)}
+              onToggleCollapse={() => toggleMessageCollapse(index)}
+              handleRun={handleRun}
+              canClientSendMultipleMessages={canClientSendMultipleMessages}
+            />
         ))}
       </div>
       
