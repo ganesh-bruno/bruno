@@ -39,6 +39,11 @@ import {
 import Modal from 'components/Modal/index';
 import CodeEditor from 'components/CodeEditor';
 import { debounce } from 'lodash';
+import { getPropertyFromDraftOrRequest } from 'utils/collections';
+
+// Constants for gRPC method types
+const STREAMING_METHOD_TYPES = ['client-streaming', 'server-streaming', 'bidi-streaming'];
+const CLIENT_STREAMING_METHOD_TYPES = ['client-streaming', 'bidi-streaming'];
 
 const GrpcurlModal = ({ isOpen, onClose, command }) => {
   const { displayedTheme } = useTheme();
@@ -98,10 +103,10 @@ const GrpcurlModal = ({ isOpen, onClose, command }) => {
 const GrpcQueryUrl = ({ item, collection, handleRun }) => {
   const { theme, storedTheme } = useTheme();
   const dispatch = useDispatch();
-  const method = item.draft ? get(item, 'draft.request.method') : get(item, 'request.method');
-  const type = item.draft ? get(item, 'draft.request.type') : get(item, 'request.type');
-  const url = item.draft ? get(item, 'draft.request.url', '') : get(item, 'request.url', '');
-  const protoPath = item.draft ? get(item, 'draft.request.protoPath') : get(item, 'request.protoPath');
+  const method = getPropertyFromDraftOrRequest(item,   'method');
+  const type = getPropertyFromDraftOrRequest(item, 'type');
+  const url = getPropertyFromDraftOrRequest(item, 'url', '');
+  const protoPath = getPropertyFromDraftOrRequest(item, 'protoPath');
   const isMac = isMacOS();
   const saveShortcut = isMac ? 'Cmd + S' : 'Ctrl + S';
   const editorRef = useRef(null);
@@ -161,8 +166,9 @@ const GrpcQueryUrl = ({ item, collection, handleRun }) => {
   const onMethodDropdownCreate = (ref) => (methodDropdownRef.current = ref);
   const onProtoDropdownCreate = (ref) => (protoDropdownRef.current = ref);
 
-  const isStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && selectedGrpcMethod.type !== 'unary';
-  const isClientStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && (selectedGrpcMethod.type === 'client-streaming' || selectedGrpcMethod.type === 'bidi-streaming');
+
+  const isStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && STREAMING_METHOD_TYPES.includes(selectedGrpcMethod.type);
+  const isClientStreamingMethod = selectedGrpcMethod && selectedGrpcMethod.type && CLIENT_STREAMING_METHOD_TYPES.includes(selectedGrpcMethod.type);
 
   const onSave = (finalValue) => {
     dispatch(saveRequest(item.uid, collection.uid));

@@ -1183,3 +1183,7 @@ export const getRequestItemsForCollectionRun = ({ recursive, items = [], tags })
 
   return requestItems;
 };
+
+export const getPropertyFromDraftOrRequest = (item, propertyKey, defaultValue = null) => {
+  return item.draft ? get(item, `draft.${propertyKey}`, defaultValue) : get(item, propertyKey, defaultValue);
+};
