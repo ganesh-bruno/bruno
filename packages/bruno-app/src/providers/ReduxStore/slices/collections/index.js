@@ -104,6 +104,12 @@ export const collectionsSlice = createSlice({
         }
       }
     },
+    updateCollectionLoadingState: (state, action) => {
+      const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
+      if (collection) {
+        collection.isLoading = action.payload.isLoading;
+      }
+    },
     setCollectionSecurityConfig: (state, action) => {
       const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
       if (collection) {
@@ -1058,6 +1064,43 @@ export const collectionsSlice = createSlice({
         item.draft = cloneDeep(item);
       }
       item.draft.request.headers = map(action.payload.headers, ({name = '', value = '', enabled = true}) => ({
+        uid: uuid(),
+        name: name,
+        value: value,
+        description: '',
+        enabled: enabled
+      }));
+    },
+    setCollectionHeaders: (state, action) => {
+      const { collectionUid, headers } = action.payload;
+
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      if (!collection) {
+        return;
+      }
+
+      collection.root.request.headers = map(headers, ({name = '', value = '', enabled = true}) => ({
+        uid: uuid(),
+        name: name,
+        value: value,
+        description: '',
+        enabled: enabled
+      }));
+    },
+    setFolderHeaders: (state, action) => {
+      const { collectionUid, folderUid, headers } = action.payload;
+
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      if (!collection) {
+        return;
+      }
+
+      const folder = findItemInCollection(collection, folderUid);
+      if (!folder || !isItemAFolder(folder)) {
+        return;
+      }
+      
+      folder.root.request.headers = map(headers, ({name = '', value = '', enabled = true}) => ({
         uid: uuid(),
         name: name,
         value: value,
@@ -2450,6 +2493,7 @@ export const collectionsSlice = createSlice({
         collection.runnerResult = null;
         collection.runnerTags = { include: [], exclude: [] }
         collection.runnerTagsEnabled = false;
+        collection.runnerConfiguration = null;
       }
     },
     updateRunnerTagsDetails: (state, action) => {
@@ -2462,6 +2506,16 @@ export const collectionsSlice = createSlice({
         if (typeof tagsEnabled === 'boolean') {
           collection.runnerTagsEnabled = tagsEnabled;
         }
+      }
+    },
+    updateRunnerConfiguration: (state, action) => {
+      const { collectionUid, selectedRequestItems, requestItemsOrder } = action.payload;
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      if (collection) {
+        collection.runnerConfiguration = {
+          selectedRequestItems: selectedRequestItems || [],
+          requestItemsOrder: requestItemsOrder || []
+        };
       }
     },
     updateRequestDocs: (state, action) => {
@@ -2634,6 +2688,7 @@ export const collectionsSlice = createSlice({
 export const {
   createCollection,
   updateCollectionMountStatus,
+  updateCollectionLoadingState,
   setCollectionSecurityConfig,
   brunoConfigUpdateEvent,
   renameCollection,
@@ -2677,6 +2732,8 @@ export const {
   deleteRequestHeader,
   moveRequestHeader,
   setRequestHeaders,
+  setCollectionHeaders,
+  setFolderHeaders,
   addFormUrlEncodedParam,
   updateFormUrlEncodedParam,
   deleteFormUrlEncodedParam,
@@ -2740,6 +2797,7 @@ export const {
   runFolderEvent,
   resetCollectionRunner,
   updateRunnerTagsDetails,
+  updateRunnerConfiguration,
   updateRequestDocs,
   updateFolderDocs,
   moveCollection,

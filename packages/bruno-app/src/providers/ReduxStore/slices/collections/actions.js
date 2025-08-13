@@ -39,7 +39,8 @@ import {
   collectionAddOauth2CredentialsByUrl,
   collectionClearOauth2CredentialsByUrl,
   initRunRequestEvent,
-  updateActiveConnections
+  updateActiveConnections,
+  updateRunnerConfiguration as _updateRunnerConfiguration
 } from './index';
 
 import { each } from 'lodash';
@@ -327,9 +328,9 @@ export const cancelRunnerExecution = (cancelTokenUid) => (dispatch) => {
   cancelNetworkRequest(cancelTokenUid).catch((err) => console.log(err));
 };
 
-export const runCollectionFolder = (collectionUid, folderUid, recursive, delay, tags) => (dispatch, getState) => {
+export const runCollectionFolder = (collectionUid, folderUid, recursive, delay, tags, selectedRequestUids) => (dispatch, getState) => {
   const state = getState();
-  const { globalEnvironments, activeGlobalEnvironmentUid } = state.globalEnvironments;  
+  const { globalEnvironments, activeGlobalEnvironmentUid } = state.globalEnvironments;
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
   return new Promise((resolve, reject) => {
@@ -356,6 +357,26 @@ export const runCollectionFolder = (collectionUid, folderUid, recursive, delay, 
         collectionUid: collection.uid
       })
     );
+
+    // to only include those requests in the specified order while preserving folder data
+    if (selectedRequestUids && selectedRequestUids.length > 0) {
+      const newItems = [];
+      
+      selectedRequestUids.forEach((uid, index) => {
+        const requestItem = findItemInCollection(collectionCopy, uid);
+        if (requestItem) {
+          const clonedRequest = cloneDeep(requestItem);
+          clonedRequest.seq = index + 1;
+          newItems.push(clonedRequest);
+        }
+      });
+      
+      if (folder) {
+        folder.items = newItems;
+      } else {
+        collectionCopy.items = newItems;
+      }
+    }
 
     const { ipcRenderer } = window;
     ipcRenderer
@@ -1179,7 +1200,7 @@ export const removeCollection = (collectionUid) => (dispatch, getState) => {
     }
     const { ipcRenderer } = window;
     ipcRenderer
-      .invoke('renderer:remove-collection', collection.pathname)
+      .invoke('renderer:remove-collection', collection.pathname, collectionUid)
       .then(() => {
         dispatch(closeAllCollectionTabs({ collectionUid }));
       })
@@ -1519,4 +1540,12 @@ export const openCollectionSettings = (collectionUid, tabName = 'overview') => (
 
     resolve();
   });
+};
+
+export const updateRunnerConfiguration = (collectionUid, selectedRequestItems, requestItemsOrder) => (dispatch) => {
+  dispatch(_updateRunnerConfiguration({
+    collectionUid,
+    selectedRequestItems,
+    requestItemsOrder
+  }));
 };
